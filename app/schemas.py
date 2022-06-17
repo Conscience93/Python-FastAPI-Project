@@ -15,14 +15,6 @@ class PostCreate(PostBase):   #Inheritance
 class PostUpdate(PostBase):
     pass
 
-class Post(PostBase):
-    id : int
-    created_at: datetime
-
-    class Config:
-        # This will ensure that the thingy will auto convert this into Pydantic when sending response.
-        orm_mode = True
-
 """User"""
 class UserCreate(BaseModel):
     email: EmailStr
@@ -40,6 +32,17 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class Post(PostBase):
+    id : int
+    created_at: datetime
+    owner_id: int
+    owner: UserOut
+
+    class Config:
+        # This will ensure that the thingy will auto convert this into Pydantic when sending response.
+        orm_mode = True
 
 
 """Access Token"""

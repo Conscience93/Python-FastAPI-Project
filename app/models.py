@@ -1,8 +1,10 @@
 
 from email.policy import default
+from enum import unique
 
-from sqlalchemy import TIMESTAMP, Column, Integer, String, Boolean, UniqueConstraint
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, Integer, String, Boolean
 from sqlalchemy.sql.expression import TextClause
+from sqlalchemy.orm import relationship
 
 from .database import Base
 
@@ -15,12 +17,15 @@ class Post(Base):
     content = Column(String, nullable=False)
     published = Column(Boolean, server_default='TRUE', nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=TextClause('now()'))
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    # ForeignKey("users.id", ondelete="CASCADE")  name get from __tablename__, CASCADE means when user is deleted, the post will be deleted as well.
 
+    owner = relationship("User")
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, nullable=False)
-    email = Column(String, nullable=False, UniqueConstraint=True)
+    email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=TextClause('now()'))
