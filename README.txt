@@ -11,8 +11,13 @@ Using FastAPI as a tool for Python API Development. Courtesy of FreeCodeCamp You
 
 ## V1.2 - 17/6/2022
 - Add Foreign Key in post model that is connected to user model.
-- Implement authorisation (Improving oauth2) so posts can only be changed by their owner.
+- Implement simple authorisation (Improving oauth2) so posts can only be changed by their owner.
 - Clean up main.py part 2
+
+## V1.3 - 19/6/2022
+- Add .env and .gitignore files (should have put that. Oops)
+- Replacing sensitive information with env reference.
+- Add pydantic for env value validation.
 
 Start-up
 venv/Scripts/Activate.ps1

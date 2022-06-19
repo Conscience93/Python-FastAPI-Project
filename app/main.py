@@ -15,6 +15,8 @@ from . import models
 from .database import engine
 models.Base.metadata.create_all(bind=engine)   #code that create a table (he thinks)
 
+# pydantic
+from .config import Settings
 
 @app.get("/")    # decorator
 async def root():
