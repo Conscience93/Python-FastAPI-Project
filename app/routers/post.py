@@ -3,6 +3,7 @@
 from click import get_current_context
 from .. import models, schemas, oauth2
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, APIRouter
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -18,17 +19,20 @@ from ..database import engine, get_db
 
 # @app.get("/posts", response_model=schemas.Post)  response_model=schemas.Post will return error because it contains lists of posts.
 # response_model is a thing that send info back to the user client
-@router.get("/", response_model=List[schemas.Post])
+@router.get("/", response_model=List[schemas.PostOut])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),
 limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # http://127.0.0.1:9000/posts?limit=3     if limit is specified, u should get only 3 posts. By default is 10
 
     """Get all posts"""
-    # cursor.execute("""SELECT * FROM posts""")
-    # posts = cursor.fetchall()
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return posts
-
+    
+    # func.count perform SQL count function, label() renamed the column
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
+            models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    
+    return results
 
 
 
@@ -44,10 +48,13 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), curren
 
 
 
-@router.get("/{id}", response_model=schemas.Post)     #Note: @app.get("/posts/{id}")  {id} will return string id
+@router.get("/{id}", response_model=schemas.PostOut)     #Note: @app.get("/posts/{id}")  {id} will return string id
 def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     """Retrieve one individual post"""
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
+
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -56,6 +63,9 @@ def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends
     #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorised to perform requested action.")
 
     return post
+
+
+
 
 @router.put("/{id}", response_model=schemas.Post)
 def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):

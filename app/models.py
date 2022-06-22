@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 class Post(Base):
-    #Note: If the table already exists, it's not going to modify the existing table.
+    #Note: If the table already exists, it's not going to modify the existing table. There's no database migration tool function yet.
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, nullable=False)
@@ -29,3 +29,9 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=TextClause('now()'))
+
+class Vote(Base):
+    __tablename__="votes"
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True)

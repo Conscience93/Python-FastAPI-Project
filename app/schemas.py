@@ -1,6 +1,6 @@
 """Schema"""
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, conint
 from datetime import datetime
 
 """Post"""
@@ -44,6 +44,13 @@ class Post(PostBase):
         # This will ensure that the thingy will auto convert this into Pydantic when sending response.
         orm_mode = True
 
+class PostOut(PostBase):
+    Post: Post
+    votes: int
+    # this is because in db.query, it returns a dictionary post, Post: {id: 13, published: True, etc.etc.}, votes: 0
+
+    class Config:
+        orm_mode = True
 
 """Access Token"""
 class Token(BaseModel):
@@ -52,3 +59,8 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str] = None
+
+"""Vote"""
+class Vote(BaseModel):
+    post_id: int
+    dir: conint(ge=1)    # 0 or 1 only
